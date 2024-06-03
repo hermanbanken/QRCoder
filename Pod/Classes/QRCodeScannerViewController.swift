@@ -94,7 +94,7 @@ open class QRCodeScannerViewController: UIViewController, AVCaptureMetadataOutpu
     
     override open func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        captureSession.stopRunning()
+        stopRunning()
     }
     
     open override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -154,15 +154,26 @@ open class QRCodeScannerViewController: UIViewController, AVCaptureMetadataOutpu
     public func startQRCodeScanningSession(){
         updateVideoOrientation(orientation: UIApplication.shared.statusBarOrientation)
         highlightView.frame = CGRect.zero
-        captureSession.startRunning()
+        startRunning()
     }
     
     /**
      Stops the scanning session
      */
     public func stopQRCodeScanningSession(){
-        captureSession.stopRunning()
+        stopRunning()
         highlightView.frame = CGRect.zero
+    }
+    
+    private func startRunning() {
+        DispatchQueue.global(qos: .background).async {
+	    	self.captureSession.startRunning()
+    	}
+    }
+    private func stopRunning() {
+        DispatchQueue.global(qos: .background).async {
+	    	self.captureSession.stopRunning()
+    	}        
     }
     
     //MARK: AVCaptureMetadataOutputObjectsDelegate
@@ -195,7 +206,7 @@ open class QRCodeScannerViewController: UIViewController, AVCaptureMetadataOutpu
         captureSession.stopRunning()
         
         if !showHighlightView && !self.processQRCodeContent(qrCodeContent: qrCode) {
-            self.captureSession.startRunning()
+            captureSession.startRunning()
         } else {
             DispatchQueue.main.sync {
                 self.highlightView.frame = highlightViewRect
